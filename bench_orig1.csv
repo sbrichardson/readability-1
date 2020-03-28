@@ -1,0 +1,102 @@
+op/s,task
+2248,001 document parse perf
+ 254,002 document parse perf
+7267,003-metadata-preferred document parse perf
+8599,004-metadata-space-separated-properties document parse perf
+ 407,aclu document parse perf
+ 146,ars-1 document parse perf
+9002,base-url document parse perf
+7249,base-url-base-element document parse perf
+7230,base-url-base-element-relative document parse perf
+9602,basic-tags-cleaning document parse perf
+ 243,bbc-1 document parse perf
+ 488,blogger document parse perf
+ 202,breitbart document parse perf
+  84,bug-1255978 document parse perf
+ 206,buzzfeed-1 document parse perf
+ 560,citylab-1 document parse perf
+ 531,clean-links document parse perf
+ 110,cnet document parse perf
+ 337,cnet-svg-classes document parse perf
+ 362,cnn document parse perf
+9158,comment-inside-script-parsing document parse perf
+2286,daringfireball-1 document parse perf
+ 853,ebb-org document parse perf
+ 546,ehow-1 document parse perf
+ 454,ehow-2 document parse perf
+7238,embedded-videos document parse perf
+  90,engadget document parse perf
+ 214,folha document parse perf
+ 396,gmw document parse perf
+ 229,guardian-1 document parse perf
+ 136,heise document parse perf
+ 474,herald-sun-1 document parse perf
+10470,hidden-nodes document parse perf
+1041,hukumusume document parse perf
+ 297,iab-1 document parse perf
+1041,ietf-1 document parse perf
+15513,js-link-replacement document parse perf
+ 606,keep-images document parse perf
+ 571,keep-tabular-data document parse perf
+ 580,la-nacion document parse perf
+ 130,lemonde-1 document parse perf
+ 327,liberation-1 document parse perf
+ 191,lifehacker-post-comment-load document parse perf
+ 430,lifehacker-working document parse perf
+ 116,links-in-tables document parse perf
+ 586,lwn-1 document parse perf
+ 463,medicalnewstoday document parse perf
+ 702,medium-1 document parse perf
+ 976,medium-2 document parse perf
+ 197,medium-3 document parse perf
+ 571,mercurial document parse perf
+8614,metadata-content-missing document parse perf
+11386,missing-paragraphs document parse perf
+ 128,mozilla-1 document parse perf
+ 902,mozilla-2 document parse perf
+ 181,msn document parse perf
+12519,normalize-spaces document parse perf
+  92,nytimes-1 document parse perf
+ 164,nytimes-2 document parse perf
+ 371,nytimes-3 document parse perf
+ 119,nytimes-4 document parse perf
+ 127,pixnet document parse perf
+ 438,qq document parse perf
+9738,remove-aria-hidden document parse perf
+9606,remove-extra-brs document parse perf
+9887,remove-extra-paragraphs document parse perf
+9065,remove-script-tags document parse perf
+18160,reordering-paragraphs document parse perf
+6814,replace-brs document parse perf
+9731,replace-font-tags document parse perf
+10093,rtl-1 document parse perf
+10732,rtl-2 document parse perf
+10063,rtl-3 document parse perf
+12838,rtl-4 document parse perf
+ 110,salon-1 document parse perf
+ 396,seattletimes-1 document parse perf
+1082,simplyfound-1 document parse perf
+6512,social-buttons document parse perf
+8297,style-tags-removal document parse perf
+8440,svg-parsing document parse perf
+2903,table-style-attributes document parse perf
+ 263,telegraph document parse perf
+11863,title-and-h1-discrepancy document parse perf
+ 493,tmz-1 document parse perf
+1991,tumblr document parse perf
+ 292,videos-1 document parse perf
+ 114,videos-2 document parse perf
+ 341,wapo-1 document parse perf
+ 423,wapo-2 document parse perf
+ 351,webmd-1 document parse perf
+ 408,webmd-2 document parse perf
+ 104,wikia document parse perf
+ 144,wikipedia document parse perf
+  30,wikipedia-2 document parse perf
+  94,wikipedia-3 document parse perf
+ 328,wordpress document parse perf
+ 298,yahoo-1 document parse perf
+  81,yahoo-2 document parse perf
+ 180,yahoo-3 document parse perf
+ 429,yahoo-4 document parse perf
+ 471,youth document parse perf
