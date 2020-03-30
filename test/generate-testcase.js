@@ -166,4 +166,3 @@ function runReadability(source, destPath, metadataDestPath) {
     });
   });
 }
-

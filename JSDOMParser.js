@@ -1,10 +1,9 @@
-var UNDEF = void 0,
-  jsonParse = JSON.parse
+"use strict";
 
 /*eslint-env es6:false*/
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at mozilla.org/MPL/2.0/. */
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
  * This is a relatively lightweight DOMParser that is safe to use in a web
@@ -28,300 +27,294 @@ var UNDEF = void 0,
  *      want these lists to be updated when nodes are removed or added to the
  *      document, you must take care to manually update them yourself.
  */
-;(function (global) {
+(function (global) {
+
   // XML only defines these and the numeric ones:
+
   var entityTable = {
-    lt: '<',
-    gt: '>',
-    amp: '&',
-    quot: '"',
-    apos: "'",
-  }
+    "lt": "<",
+    "gt": ">",
+    "amp": "&",
+    "quot": '"',
+    "apos": "'",
+  };
 
   var reverseEntityTable = {
-    '<': '&lt;',
-    '>': '&gt;',
-    '&': '&amp;',
-    '"': '&quot;',
-    "'": '&apos;',
-  }
+    "<": "&lt;",
+    ">": "&gt;",
+    "&": "&amp;",
+    '"': "&quot;",
+    "'": "&apos;",
+  };
 
   function encodeTextContentHTML(s) {
-    return s.replace(/[&<>]/g, function (x) {
-      return reverseEntityTable[x]
-    })
+    return s.replace(/[&<>]/g, function(x) {
+      return reverseEntityTable[x];
+    });
   }
 
   function encodeHTML(s) {
-    return s.replace(/[&<>'"]/g, function (x) {
-      return reverseEntityTable[x]
-    })
+    return s.replace(/[&<>'"]/g, function(x) {
+      return reverseEntityTable[x];
+    });
   }
 
   function decodeHTML(str) {
-    return str
-      .replace(/&(quot|amp|apos|lt|gt);/g, function (match, tag) {
-        return entityTable[tag]
-      })
-      .replace(/&#(?:x([0-9a-z]{1,4})|([0-9]{1,4}));/gi, function (
-        match,
-        hex,
-        numStr
-      ) {
-        var num = parseInt(hex || numStr, hex ? 16 : 10) // read num
-        return String.fromCharCode(num)
-      })
+    return str.replace(/&(quot|amp|apos|lt|gt);/g, function(match, tag) {
+      return entityTable[tag];
+    }).replace(/&#(?:x([0-9a-z]{1,4})|([0-9]{1,4}));/gi, function(match, hex, numStr) {
+      var num = parseInt(hex || numStr, hex ? 16 : 10); // read num
+      return String.fromCharCode(num);
+    });
   }
 
   // When a style is set in JS, map it to the corresponding CSS attribute
   var styleMap = {
-      alignmentBaseline: 'alignment-baseline',
-      background: 'background',
-      backgroundAttachment: 'background-attachment',
-      backgroundClip: 'background-clip',
-      backgroundColor: 'background-color',
-      backgroundImage: 'background-image',
-      backgroundOrigin: 'background-origin',
-      backgroundPosition: 'background-position',
-      backgroundPositionX: 'background-position-x',
-      backgroundPositionY: 'background-position-y',
-      backgroundRepeat: 'background-repeat',
-      backgroundRepeatX: 'background-repeat-x',
-      backgroundRepeatY: 'background-repeat-y',
-      backgroundSize: 'background-size',
-      baselineShift: 'baseline-shift',
-      border: 'border',
-      borderBottom: 'border-bottom',
-      borderBottomColor: 'border-bottom-color',
-      borderBottomLeftRadius: 'border-bottom-left-radius',
-      borderBottomRightRadius: 'border-bottom-right-radius',
-      borderBottomStyle: 'border-bottom-style',
-      borderBottomWidth: 'border-bottom-width',
-      borderCollapse: 'border-collapse',
-      borderColor: 'border-color',
-      borderImage: 'border-image',
-      borderImageOutset: 'border-image-outset',
-      borderImageRepeat: 'border-image-repeat',
-      borderImageSlice: 'border-image-slice',
-      borderImageSource: 'border-image-source',
-      borderImageWidth: 'border-image-width',
-      borderLeft: 'border-left',
-      borderLeftColor: 'border-left-color',
-      borderLeftStyle: 'border-left-style',
-      borderLeftWidth: 'border-left-width',
-      borderRadius: 'border-radius',
-      borderRight: 'border-right',
-      borderRightColor: 'border-right-color',
-      borderRightStyle: 'border-right-style',
-      borderRightWidth: 'border-right-width',
-      borderSpacing: 'border-spacing',
-      borderStyle: 'border-style',
-      borderTop: 'border-top',
-      borderTopColor: 'border-top-color',
-      borderTopLeftRadius: 'border-top-left-radius',
-      borderTopRightRadius: 'border-top-right-radius',
-      borderTopStyle: 'border-top-style',
-      borderTopWidth: 'border-top-width',
-      borderWidth: 'border-width',
-      bottom: 'bottom',
-      boxShadow: 'box-shadow',
-      boxSizing: 'box-sizing',
-      captionSide: 'caption-side',
-      clear: 'clear',
-      clip: 'clip',
-      clipPath: 'clip-path',
-      clipRule: 'clip-rule',
-      color: 'color',
-      colorInterpolation: 'color-interpolation',
-      colorInterpolationFilters: 'color-interpolation-filters',
-      colorProfile: 'color-profile',
-      colorRendering: 'color-rendering',
-      content: 'content',
-      counterIncrement: 'counter-increment',
-      counterReset: 'counter-reset',
-      cursor: 'cursor',
-      direction: 'direction',
-      display: 'display',
-      dominantBaseline: 'dominant-baseline',
-      emptyCells: 'empty-cells',
-      enableBackground: 'enable-background',
-      fill: 'fill',
-      fillOpacity: 'fill-opacity',
-      fillRule: 'fill-rule',
-      filter: 'filter',
-      cssFloat: 'float',
-      floodColor: 'flood-color',
-      floodOpacity: 'flood-opacity',
-      font: 'font',
-      fontFamily: 'font-family',
-      fontSize: 'font-size',
-      fontStretch: 'font-stretch',
-      fontStyle: 'font-style',
-      fontVariant: 'font-variant',
-      fontWeight: 'font-weight',
-      glyphOrientationHorizontal: 'glyph-orientation-horizontal',
-      glyphOrientationVertical: 'glyph-orientation-vertical',
-      height: 'height',
-      imageRendering: 'image-rendering',
-      kerning: 'kerning',
-      left: 'left',
-      letterSpacing: 'letter-spacing',
-      lightingColor: 'lighting-color',
-      lineHeight: 'line-height',
-      listStyle: 'list-style',
-      listStyleImage: 'list-style-image',
-      listStylePosition: 'list-style-position',
-      listStyleType: 'list-style-type',
-      margin: 'margin',
-      marginBottom: 'margin-bottom',
-      marginLeft: 'margin-left',
-      marginRight: 'margin-right',
-      marginTop: 'margin-top',
-      marker: 'marker',
-      markerEnd: 'marker-end',
-      markerMid: 'marker-mid',
-      markerStart: 'marker-start',
-      mask: 'mask',
-      maxHeight: 'max-height',
-      maxWidth: 'max-width',
-      minHeight: 'min-height',
-      minWidth: 'min-width',
-      opacity: 'opacity',
-      orphans: 'orphans',
-      outline: 'outline',
-      outlineColor: 'outline-color',
-      outlineOffset: 'outline-offset',
-      outlineStyle: 'outline-style',
-      outlineWidth: 'outline-width',
-      overflow: 'overflow',
-      overflowX: 'overflow-x',
-      overflowY: 'overflow-y',
-      padding: 'padding',
-      paddingBottom: 'padding-bottom',
-      paddingLeft: 'padding-left',
-      paddingRight: 'padding-right',
-      paddingTop: 'padding-top',
-      page: 'page',
-      pageBreakAfter: 'page-break-after',
-      pageBreakBefore: 'page-break-before',
-      pageBreakInside: 'page-break-inside',
-      pointerEvents: 'pointer-events',
-      position: 'position',
-      quotes: 'quotes',
-      resize: 'resize',
-      right: 'right',
-      shapeRendering: 'shape-rendering',
-      size: 'size',
-      speak: 'speak',
-      src: 'src',
-      stopColor: 'stop-color',
-      stopOpacity: 'stop-opacity',
-      stroke: 'stroke',
-      strokeDasharray: 'stroke-dasharray',
-      strokeDashoffset: 'stroke-dashoffset',
-      strokeLinecap: 'stroke-linecap',
-      strokeLinejoin: 'stroke-linejoin',
-      strokeMiterlimit: 'stroke-miterlimit',
-      strokeOpacity: 'stroke-opacity',
-      strokeWidth: 'stroke-width',
-      tableLayout: 'table-layout',
-      textAlign: 'text-align',
-      textAnchor: 'text-anchor',
-      textDecoration: 'text-decoration',
-      textIndent: 'text-indent',
-      textLineThrough: 'text-line-through',
-      textLineThroughColor: 'text-line-through-color',
-      textLineThroughMode: 'text-line-through-mode',
-      textLineThroughStyle: 'text-line-through-style',
-      textLineThroughWidth: 'text-line-through-width',
-      textOverflow: 'text-overflow',
-      textOverline: 'text-overline',
-      textOverlineColor: 'text-overline-color',
-      textOverlineMode: 'text-overline-mode',
-      textOverlineStyle: 'text-overline-style',
-      textOverlineWidth: 'text-overline-width',
-      textRendering: 'text-rendering',
-      textShadow: 'text-shadow',
-      textTransform: 'text-transform',
-      textUnderline: 'text-underline',
-      textUnderlineColor: 'text-underline-color',
-      textUnderlineMode: 'text-underline-mode',
-      textUnderlineStyle: 'text-underline-style',
-      textUnderlineWidth: 'text-underline-width',
-      top: 'top',
-      unicodeBidi: 'unicode-bidi',
-      unicodeRange: 'unicode-range',
-      vectorEffect: 'vector-effect',
-      verticalAlign: 'vertical-align',
-      visibility: 'visibility',
-      whiteSpace: 'white-space',
-      widows: 'widows',
-      width: 'width',
-      wordBreak: 'word-break',
-      wordSpacing: 'word-spacing',
-      wordWrap: 'word-wrap',
-      writingMode: 'writing-mode',
-      zIndex: 'z-index',
-      zoom: 'zoom',
-    },
-    // Elements that can be self-closing
-    voidElems = {
-      area: true,
-      base: true,
-      br: true,
-      col: true,
-      command: true,
-      embed: true,
-      hr: true,
-      img: true,
-      input: true,
-      link: true,
-      meta: true,
-      param: true,
-      source: true,
-      wbr: true,
-    },
-    whitespace = [' ', '\t', '\n', '\r'],
-    // See www.w3schools.com/dom/dom_nodetype.asp
-    nodeTypes = {
-      ELEMENT_NODE: 1,
-      ATTRIBUTE_NODE: 2,
-      TEXT_NODE: 3,
-      CDATA_SECTION_NODE: 4,
-      ENTITY_REFERENCE_NODE: 5,
-      ENTITY_NODE: 6,
-      PROCESSING_INSTRUCTION_NODE: 7,
-      COMMENT_NODE: 8,
-      DOCUMENT_NODE: 9,
-      DOCUMENT_TYPE_NODE: 10,
-      DOCUMENT_FRAGMENT_NODE: 11,
-      NOTATION_NODE: 12,
-    }
+    "alignmentBaseline": "alignment-baseline",
+    "background": "background",
+    "backgroundAttachment": "background-attachment",
+    "backgroundClip": "background-clip",
+    "backgroundColor": "background-color",
+    "backgroundImage": "background-image",
+    "backgroundOrigin": "background-origin",
+    "backgroundPosition": "background-position",
+    "backgroundPositionX": "background-position-x",
+    "backgroundPositionY": "background-position-y",
+    "backgroundRepeat": "background-repeat",
+    "backgroundRepeatX": "background-repeat-x",
+    "backgroundRepeatY": "background-repeat-y",
+    "backgroundSize": "background-size",
+    "baselineShift": "baseline-shift",
+    "border": "border",
+    "borderBottom": "border-bottom",
+    "borderBottomColor": "border-bottom-color",
+    "borderBottomLeftRadius": "border-bottom-left-radius",
+    "borderBottomRightRadius": "border-bottom-right-radius",
+    "borderBottomStyle": "border-bottom-style",
+    "borderBottomWidth": "border-bottom-width",
+    "borderCollapse": "border-collapse",
+    "borderColor": "border-color",
+    "borderImage": "border-image",
+    "borderImageOutset": "border-image-outset",
+    "borderImageRepeat": "border-image-repeat",
+    "borderImageSlice": "border-image-slice",
+    "borderImageSource": "border-image-source",
+    "borderImageWidth": "border-image-width",
+    "borderLeft": "border-left",
+    "borderLeftColor": "border-left-color",
+    "borderLeftStyle": "border-left-style",
+    "borderLeftWidth": "border-left-width",
+    "borderRadius": "border-radius",
+    "borderRight": "border-right",
+    "borderRightColor": "border-right-color",
+    "borderRightStyle": "border-right-style",
+    "borderRightWidth": "border-right-width",
+    "borderSpacing": "border-spacing",
+    "borderStyle": "border-style",
+    "borderTop": "border-top",
+    "borderTopColor": "border-top-color",
+    "borderTopLeftRadius": "border-top-left-radius",
+    "borderTopRightRadius": "border-top-right-radius",
+    "borderTopStyle": "border-top-style",
+    "borderTopWidth": "border-top-width",
+    "borderWidth": "border-width",
+    "bottom": "bottom",
+    "boxShadow": "box-shadow",
+    "boxSizing": "box-sizing",
+    "captionSide": "caption-side",
+    "clear": "clear",
+    "clip": "clip",
+    "clipPath": "clip-path",
+    "clipRule": "clip-rule",
+    "color": "color",
+    "colorInterpolation": "color-interpolation",
+    "colorInterpolationFilters": "color-interpolation-filters",
+    "colorProfile": "color-profile",
+    "colorRendering": "color-rendering",
+    "content": "content",
+    "counterIncrement": "counter-increment",
+    "counterReset": "counter-reset",
+    "cursor": "cursor",
+    "direction": "direction",
+    "display": "display",
+    "dominantBaseline": "dominant-baseline",
+    "emptyCells": "empty-cells",
+    "enableBackground": "enable-background",
+    "fill": "fill",
+    "fillOpacity": "fill-opacity",
+    "fillRule": "fill-rule",
+    "filter": "filter",
+    "cssFloat": "float",
+    "floodColor": "flood-color",
+    "floodOpacity": "flood-opacity",
+    "font": "font",
+    "fontFamily": "font-family",
+    "fontSize": "font-size",
+    "fontStretch": "font-stretch",
+    "fontStyle": "font-style",
+    "fontVariant": "font-variant",
+    "fontWeight": "font-weight",
+    "glyphOrientationHorizontal": "glyph-orientation-horizontal",
+    "glyphOrientationVertical": "glyph-orientation-vertical",
+    "height": "height",
+    "imageRendering": "image-rendering",
+    "kerning": "kerning",
+    "left": "left",
+    "letterSpacing": "letter-spacing",
+    "lightingColor": "lighting-color",
+    "lineHeight": "line-height",
+    "listStyle": "list-style",
+    "listStyleImage": "list-style-image",
+    "listStylePosition": "list-style-position",
+    "listStyleType": "list-style-type",
+    "margin": "margin",
+    "marginBottom": "margin-bottom",
+    "marginLeft": "margin-left",
+    "marginRight": "margin-right",
+    "marginTop": "margin-top",
+    "marker": "marker",
+    "markerEnd": "marker-end",
+    "markerMid": "marker-mid",
+    "markerStart": "marker-start",
+    "mask": "mask",
+    "maxHeight": "max-height",
+    "maxWidth": "max-width",
+    "minHeight": "min-height",
+    "minWidth": "min-width",
+    "opacity": "opacity",
+    "orphans": "orphans",
+    "outline": "outline",
+    "outlineColor": "outline-color",
+    "outlineOffset": "outline-offset",
+    "outlineStyle": "outline-style",
+    "outlineWidth": "outline-width",
+    "overflow": "overflow",
+    "overflowX": "overflow-x",
+    "overflowY": "overflow-y",
+    "padding": "padding",
+    "paddingBottom": "padding-bottom",
+    "paddingLeft": "padding-left",
+    "paddingRight": "padding-right",
+    "paddingTop": "padding-top",
+    "page": "page",
+    "pageBreakAfter": "page-break-after",
+    "pageBreakBefore": "page-break-before",
+    "pageBreakInside": "page-break-inside",
+    "pointerEvents": "pointer-events",
+    "position": "position",
+    "quotes": "quotes",
+    "resize": "resize",
+    "right": "right",
+    "shapeRendering": "shape-rendering",
+    "size": "size",
+    "speak": "speak",
+    "src": "src",
+    "stopColor": "stop-color",
+    "stopOpacity": "stop-opacity",
+    "stroke": "stroke",
+    "strokeDasharray": "stroke-dasharray",
+    "strokeDashoffset": "stroke-dashoffset",
+    "strokeLinecap": "stroke-linecap",
+    "strokeLinejoin": "stroke-linejoin",
+    "strokeMiterlimit": "stroke-miterlimit",
+    "strokeOpacity": "stroke-opacity",
+    "strokeWidth": "stroke-width",
+    "tableLayout": "table-layout",
+    "textAlign": "text-align",
+    "textAnchor": "text-anchor",
+    "textDecoration": "text-decoration",
+    "textIndent": "text-indent",
+    "textLineThrough": "text-line-through",
+    "textLineThroughColor": "text-line-through-color",
+    "textLineThroughMode": "text-line-through-mode",
+    "textLineThroughStyle": "text-line-through-style",
+    "textLineThroughWidth": "text-line-through-width",
+    "textOverflow": "text-overflow",
+    "textOverline": "text-overline",
+    "textOverlineColor": "text-overline-color",
+    "textOverlineMode": "text-overline-mode",
+    "textOverlineStyle": "text-overline-style",
+    "textOverlineWidth": "text-overline-width",
+    "textRendering": "text-rendering",
+    "textShadow": "text-shadow",
+    "textTransform": "text-transform",
+    "textUnderline": "text-underline",
+    "textUnderlineColor": "text-underline-color",
+    "textUnderlineMode": "text-underline-mode",
+    "textUnderlineStyle": "text-underline-style",
+    "textUnderlineWidth": "text-underline-width",
+    "top": "top",
+    "unicodeBidi": "unicode-bidi",
+    "unicodeRange": "unicode-range",
+    "vectorEffect": "vector-effect",
+    "verticalAlign": "vertical-align",
+    "visibility": "visibility",
+    "whiteSpace": "white-space",
+    "widows": "widows",
+    "width": "width",
+    "wordBreak": "word-break",
+    "wordSpacing": "word-spacing",
+    "wordWrap": "word-wrap",
+    "writingMode": "writing-mode",
+    "zIndex": "z-index",
+    "zoom": "zoom",
+  };
+
+  // Elements that can be self-closing
+  var voidElems = {
+    "area": true,
+    "base": true,
+    "br": true,
+    "col": true,
+    "command": true,
+    "embed": true,
+    "hr": true,
+    "img": true,
+    "input": true,
+    "link": true,
+    "meta": true,
+    "param": true,
+    "source": true,
+    "wbr": true
+  };
+
+  var whitespace = [" ", "\t", "\n", "\r"];
+
+  // See http://www.w3schools.com/dom/dom_nodetype.asp
+  var nodeTypes = {
+    ELEMENT_NODE: 1,
+    ATTRIBUTE_NODE: 2,
+    TEXT_NODE: 3,
+    CDATA_SECTION_NODE: 4,
+    ENTITY_REFERENCE_NODE: 5,
+    ENTITY_NODE: 6,
+    PROCESSING_INSTRUCTION_NODE: 7,
+    COMMENT_NODE: 8,
+    DOCUMENT_NODE: 9,
+    DOCUMENT_TYPE_NODE: 10,
+    DOCUMENT_FRAGMENT_NODE: 11,
+    NOTATION_NODE: 12
+  };
 
   function getElementsByTagName(tag) {
-    tag = tag.toUpperCase()
-
-    var elems = [],
-      allTags = tag === '*'
-
+    tag = tag.toUpperCase();
+    var elems = [];
+    var allTags = (tag === "*");
     function getElems(node) {
-      var n = node.children.length,
-        i = 0,
-        child
-
-      for (; i < n; ++i) {
-        child = node.children[i]
-        if (allTags || child.tagName === tag) elems[elems.length] = child
-        getElems(child)
+      var length = node.children.length;
+      for (var i = 0; i < length; i++) {
+        var child = node.children[i];
+        if (allTags || (child.tagName === tag))
+          elems.push(child);
+        getElems(child);
       }
     }
-
-    getElems(this)
-    elems._isLiveNodeList = true
-    return elems
+    getElems(this);
+    elems._isLiveNodeList = true;
+    return elems;
   }
 
-  var Node = function () {}
+  var Node = function () {};
 
   Node.prototype = {
     attributes: null,
@@ -334,508 +327,480 @@ var UNDEF = void 0,
     previousSibling: null,
 
     get firstChild() {
-      return this.childNodes[0] || null
+      return this.childNodes[0] || null;
     },
 
     get firstElementChild() {
-      return this.children[0] || null
+      return this.children[0] || null;
     },
 
     get lastChild() {
-      return this.childNodes[this.childNodes.length - 1] || null
+      return this.childNodes[this.childNodes.length - 1] || null;
     },
 
     get lastElementChild() {
-      return this.children[this.children.length - 1] || null
+      return this.children[this.children.length - 1] || null;
     },
 
     appendChild: function (child) {
-      !!child.parentNode && child.parentNode.removeChild(child)
+      if (child.parentNode) {
+        child.parentNode.removeChild(child);
+      }
 
-      var last = this.lastChild
-
-      if (!!last) last.nextSibling = child
-
-      child.previousSibling = last
+      var last = this.lastChild;
+      if (last)
+        last.nextSibling = child;
+      child.previousSibling = last;
 
       if (child.nodeType === Node.ELEMENT_NODE) {
-        child.previousElementSibling =
-          this.children[this.children.length - 1] || null
-
-        this.children[this.children.length] = child
-
-        child.previousElementSibling &&
-          (child.previousElementSibling.nextElementSibling = child)
+        child.previousElementSibling = this.children[this.children.length - 1] || null;
+        this.children.push(child);
+        child.previousElementSibling && (child.previousElementSibling.nextElementSibling = child);
       }
-      this.childNodes[this.childNodes.length] = child
-      child.parentNode = this
+      this.childNodes.push(child);
+      child.parentNode = this;
     },
 
     removeChild: function (child) {
-      var childNodes = this.childNodes,
-        childIndex = childNodes.indexOf(child)
-
-      if (childIndex === -1) throw 'removeChild: node not found'
-      else {
-        child.parentNode = null
-        var prev = child.previousSibling,
-          next = child.nextSibling
-
-        if (!!prev) prev.nextSibling = next
-        if (!!next) next.previousSibling = prev
+      var childNodes = this.childNodes;
+      var childIndex = childNodes.indexOf(child);
+      if (childIndex === -1) {
+        throw "removeChild: node not found";
+      } else {
+        child.parentNode = null;
+        var prev = child.previousSibling;
+        var next = child.nextSibling;
+        if (prev)
+          prev.nextSibling = next;
+        if (next)
+          next.previousSibling = prev;
 
         if (child.nodeType === Node.ELEMENT_NODE) {
-          prev = child.previousElementSibling
-          next = child.nextElementSibling
-
-          if (!!prev) prev.nextElementSibling = next
-          if (!!next) next.previousElementSibling = prev
-
-          this.children.splice(this.children.indexOf(child), 1)
+          prev = child.previousElementSibling;
+          next = child.nextElementSibling;
+          if (prev)
+            prev.nextElementSibling = next;
+          if (next)
+            next.previousElementSibling = prev;
+          this.children.splice(this.children.indexOf(child), 1);
         }
 
-        child.previousSibling = child.nextSibling = null
-        child.previousElementSibling = child.nextElementSibling = null
+        child.previousSibling = child.nextSibling = null;
+        child.previousElementSibling = child.nextElementSibling = null;
 
-        return childNodes.splice(childIndex, 1)[0]
+        return childNodes.splice(childIndex, 1)[0];
       }
     },
 
     replaceChild: function (newNode, oldNode) {
-      var childNodes = this.childNodes,
-        childIndex = childNodes.indexOf(oldNode)
-
-      if (childIndex === -1) throw 'replaceChild: node not found'
-      else {
+      var childNodes = this.childNodes;
+      var childIndex = childNodes.indexOf(oldNode);
+      if (childIndex === -1) {
+        throw "replaceChild: node not found";
+      } else {
         // This will take care of updating the new node if it was somewhere else before:
-        if (!!newNode.parentNode) newNode.parentNode.removeChild(newNode)
+        if (newNode.parentNode)
+          newNode.parentNode.removeChild(newNode);
 
-        childNodes[childIndex] = newNode
+        childNodes[childIndex] = newNode;
 
         // update the new node's sibling properties, and its new siblings' sibling properties
-        newNode.nextSibling = oldNode.nextSibling
-        newNode.previousSibling = oldNode.previousSibling
+        newNode.nextSibling = oldNode.nextSibling;
+        newNode.previousSibling = oldNode.previousSibling;
+        if (newNode.nextSibling)
+          newNode.nextSibling.previousSibling = newNode;
+        if (newNode.previousSibling)
+          newNode.previousSibling.nextSibling = newNode;
 
-        if (!!newNode.nextSibling) newNode.nextSibling.previousSibling = newNode
-
-        if (!!newNode.previousSibling)
-          newNode.previousSibling.nextSibling = newNode
-
-        newNode.parentNode = this
+        newNode.parentNode = this;
 
         // Now deal with elements before we clear out those values for the old node,
         // because it can help us take shortcuts here:
         if (newNode.nodeType === Node.ELEMENT_NODE) {
           if (oldNode.nodeType === Node.ELEMENT_NODE) {
             // Both were elements, which makes this easier, we just swap things out:
-            newNode.previousElementSibling = oldNode.previousElementSibling
-            newNode.nextElementSibling = oldNode.nextElementSibling
-
-            if (!!newNode.previousElementSibling)
-              newNode.previousElementSibling.nextElementSibling = newNode
-
-            if (!!newNode.nextElementSibling)
-              newNode.nextElementSibling.previousElementSibling = newNode
-
-            this.children[this.children.indexOf(oldNode)] = newNode
+            newNode.previousElementSibling = oldNode.previousElementSibling;
+            newNode.nextElementSibling = oldNode.nextElementSibling;
+            if (newNode.previousElementSibling)
+              newNode.previousElementSibling.nextElementSibling = newNode;
+            if (newNode.nextElementSibling)
+              newNode.nextElementSibling.previousElementSibling = newNode;
+            this.children[this.children.indexOf(oldNode)] = newNode;
           } else {
             // Hard way:
-            newNode.previousElementSibling = (function () {
+            newNode.previousElementSibling = (function() {
               for (var i = childIndex - 1; i >= 0; i--) {
                 if (childNodes[i].nodeType === Node.ELEMENT_NODE)
-                  return childNodes[i]
+                  return childNodes[i];
               }
-              return null
-            })()
-
-            if (!!newNode.previousElementSibling) {
-              newNode.nextElementSibling =
-                newNode.previousElementSibling.nextElementSibling
+              return null;
+            })();
+            if (newNode.previousElementSibling) {
+              newNode.nextElementSibling = newNode.previousElementSibling.nextElementSibling;
             } else {
-              newNode.nextElementSibling = (function () {
-                for (var i = childIndex + 1; i < childNodes.length; ++i) {
+              newNode.nextElementSibling = (function() {
+                for (var i = childIndex + 1; i < childNodes.length; i++) {
                   if (childNodes[i].nodeType === Node.ELEMENT_NODE)
-                    return childNodes[i]
+                    return childNodes[i];
                 }
-                return null
-              })()
+                return null;
+              })();
             }
+            if (newNode.previousElementSibling)
+              newNode.previousElementSibling.nextElementSibling = newNode;
+            if (newNode.nextElementSibling)
+              newNode.nextElementSibling.previousElementSibling = newNode;
 
-            if (!!newNode.previousElementSibling)
-              newNode.previousElementSibling.nextElementSibling = newNode
-
-            if (!!newNode.nextElementSibling)
-              newNode.nextElementSibling.previousElementSibling = newNode
-
-            if (!!newNode.nextElementSibling)
-              this.children.splice(
-                this.children.indexOf(newNode.nextElementSibling),
-                0,
-                newNode
-              )
-            else this.children[this.children.length] = newNode
+            if (newNode.nextElementSibling)
+              this.children.splice(this.children.indexOf(newNode.nextElementSibling), 0, newNode);
+            else
+              this.children.push(newNode);
           }
         } else if (oldNode.nodeType === Node.ELEMENT_NODE) {
           // new node is not an element node.
           // if the old one was, update its element siblings:
-          if (!!oldNode.previousElementSibling)
-            oldNode.previousElementSibling.nextElementSibling =
-              oldNode.nextElementSibling
-
-          if (!!oldNode.nextElementSibling)
-            oldNode.nextElementSibling.previousElementSibling =
-              oldNode.previousElementSibling
-
-          this.children.splice(this.children.indexOf(oldNode), 1)
+          if (oldNode.previousElementSibling)
+            oldNode.previousElementSibling.nextElementSibling = oldNode.nextElementSibling;
+          if (oldNode.nextElementSibling)
+            oldNode.nextElementSibling.previousElementSibling = oldNode.previousElementSibling;
+          this.children.splice(this.children.indexOf(oldNode), 1);
 
           // If the old node wasn't an element, neither the new nor the old node was an element,
           // and the children array and its members shouldn't need any updating.
         }
 
-        oldNode.parentNode = null
-        oldNode.previousSibling = null
-        oldNode.nextSibling = null
 
+        oldNode.parentNode = null;
+        oldNode.previousSibling = null;
+        oldNode.nextSibling = null;
         if (oldNode.nodeType === Node.ELEMENT_NODE) {
-          oldNode.previousElementSibling = null
-          oldNode.nextElementSibling = null
+          oldNode.previousElementSibling = null;
+          oldNode.nextElementSibling = null;
         }
-
-        return oldNode
+        return oldNode;
       }
     },
 
     __JSDOMParser__: true,
-  }
+  };
 
   for (var nodeType in nodeTypes) {
-    Node[nodeType] = Node.prototype[nodeType] = nodeTypes[nodeType]
+    Node[nodeType] = Node.prototype[nodeType] = nodeTypes[nodeType];
   }
 
   var Attribute = function (name, value) {
-    this.name = name
-    this._value = value
-  }
+    this.name = name;
+    this._value = value;
+  };
 
   Attribute.prototype = {
     get value() {
-      return this._value
+      return this._value;
     },
-    setValue: function (newValue) {
-      this._value = newValue
+    setValue: function(newValue) {
+      this._value = newValue;
     },
-    getEncodedValue: function () {
-      return encodeHTML(this._value)
+    getEncodedValue: function() {
+      return encodeHTML(this._value);
     },
-  }
+  };
 
   var Comment = function () {
-    this.childNodes = []
-  }
+    this.childNodes = [];
+  };
 
   Comment.prototype = {
     __proto__: Node.prototype,
-    nodeName: '#comment',
-    nodeType: Node.COMMENT_NODE,
-  }
+
+    nodeName: "#comment",
+    nodeType: Node.COMMENT_NODE
+  };
 
   var Text = function () {
-    this.childNodes = []
-  }
+    this.childNodes = [];
+  };
 
   Text.prototype = {
     __proto__: Node.prototype,
-    nodeName: '#text',
+
+    nodeName: "#text",
     nodeType: Node.TEXT_NODE,
-
     get textContent() {
-      if (typeof this._textContent === 'undefined')
-        this._textContent = decodeHTML(this._innerHTML || '')
-      return this._textContent
+      if (typeof this._textContent === "undefined") {
+        this._textContent = decodeHTML(this._innerHTML || "");
+      }
+      return this._textContent;
     },
-
     get innerHTML() {
-      if (typeof this._innerHTML === 'undefined')
-        this._innerHTML = encodeTextContentHTML(this._textContent || '')
-      return this._innerHTML
+      if (typeof this._innerHTML === "undefined") {
+        this._innerHTML = encodeTextContentHTML(this._textContent || "");
+      }
+      return this._innerHTML;
     },
 
     set innerHTML(newHTML) {
-      this._innerHTML = newHTML
-      delete this._textContent
+      this._innerHTML = newHTML;
+      delete this._textContent;
     },
-
     set textContent(newText) {
-      this._textContent = newText
-      delete this._innerHTML
+      this._textContent = newText;
+      delete this._innerHTML;
     },
-  }
+  };
 
   var Document = function (url) {
-    this.documentURI = url
-    this.styleSheets = []
-    this.childNodes = []
-    this.children = []
-  }
+    this.documentURI = url;
+    this.styleSheets = [];
+    this.childNodes = [];
+    this.children = [];
+  };
 
   Document.prototype = {
     __proto__: Node.prototype,
-    nodeName: '#document',
+
+    nodeName: "#document",
     nodeType: Node.DOCUMENT_NODE,
-    title: '',
+    title: "",
+
     getElementsByTagName: getElementsByTagName,
 
     getElementById: function (id) {
       function getElem(node) {
-        var n = node.children.length,
-          el,
-          i = 0
-
-        if (node.id === id) return node
-
-        for (; i < n; ++i) {
-          if (!!(el = getElem(node.children[i]))) return el
+        var length = node.children.length;
+        if (node.id === id)
+          return node;
+        for (var i = 0; i < length; i++) {
+          var el = getElem(node.children[i]);
+          if (el)
+            return el;
         }
-        return null
+        return null;
       }
-      return getElem(this)
+      return getElem(this);
     },
 
     createElement: function (tag) {
-      return new Element(tag)
+      var node = new Element(tag);
+      return node;
     },
 
     createTextNode: function (text) {
-      var node = new Text()
-      node.textContent = text
-      return node
+      var node = new Text();
+      node.textContent = text;
+      return node;
     },
 
     get baseURI() {
-      if (!this.hasOwnProperty('_baseURI')) {
-        this._baseURI = this.documentURI
-
-        var baseElements = this.getElementsByTagName('base'),
-          href = baseElements[0] && baseElements[0].getAttribute('href')
-
-        if (!!href) {
+      if (!this.hasOwnProperty("_baseURI")) {
+        this._baseURI = this.documentURI;
+        var baseElements = this.getElementsByTagName("base");
+        var href = baseElements[0] && baseElements[0].getAttribute("href");
+        if (href) {
           try {
-            this._baseURI = new URL(href, this._baseURI).href
-          } catch (ex) {
-            /* Just fall back to documentURI */
-          }
+            this._baseURI = (new URL(href, this._baseURI)).href;
+          } catch (ex) {/* Just fall back to documentURI */}
         }
       }
-      return this._baseURI
+      return this._baseURI;
     },
-  }
+  };
 
   var Element = function (tag) {
     // We use this to find the closing tag.
-    this._matchingTag = tag
-
+    this._matchingTag = tag;
     // We're explicitly a non-namespace aware parser, we just pretend it's all HTML.
-    var lastColonIndex = tag.lastIndexOf(':')
-
-    if (lastColonIndex != -1) tag = tag.substring(lastColonIndex + 1)
-
-    this.attributes = []
-    this.childNodes = []
-    this.children = []
-    this.nextElementSibling = this.previousElementSibling = null
-    this.localName = tag.toLowerCase()
-    this.tagName = tag.toUpperCase()
-    this.style = new Style(this)
-  }
+    var lastColonIndex = tag.lastIndexOf(":");
+    if (lastColonIndex != -1) {
+      tag = tag.substring(lastColonIndex + 1);
+    }
+    this.attributes = [];
+    this.childNodes = [];
+    this.children = [];
+    this.nextElementSibling = this.previousElementSibling = null;
+    this.localName = tag.toLowerCase();
+    this.tagName = tag.toUpperCase();
+    this.style = new Style(this);
+  };
 
   Element.prototype = {
     __proto__: Node.prototype,
+
     nodeType: Node.ELEMENT_NODE,
+
     getElementsByTagName: getElementsByTagName,
 
     get className() {
-      return this.getAttribute('class') || ''
+      return this.getAttribute("class") || "";
     },
 
     set className(str) {
-      this.setAttribute('class', str)
+      this.setAttribute("class", str);
     },
 
     get id() {
-      return this.getAttribute('id') || ''
+      return this.getAttribute("id") || "";
     },
 
     set id(str) {
-      this.setAttribute('id', str)
+      this.setAttribute("id", str);
     },
 
     get href() {
-      return this.getAttribute('href') || ''
+      return this.getAttribute("href") || "";
     },
 
     set href(str) {
-      this.setAttribute('href', str)
+      this.setAttribute("href", str);
     },
 
     get src() {
-      return this.getAttribute('src') || ''
+      return this.getAttribute("src") || "";
     },
 
     set src(str) {
-      this.setAttribute('src', str)
+      this.setAttribute("src", str);
     },
 
     get srcset() {
-      return this.getAttribute('srcset') || ''
+      return this.getAttribute("srcset") || "";
     },
 
     set srcset(str) {
-      this.setAttribute('srcset', str)
+      this.setAttribute("srcset", str);
     },
 
     get nodeName() {
-      return this.tagName
+      return this.tagName;
     },
 
     get innerHTML() {
       function getHTML(node) {
-        var i = 0,
-          j,
-          attr,
-          val,
-          quote,
-          child
+        var i = 0;
+        for (i = 0; i < node.childNodes.length; i++) {
+          var child = node.childNodes[i];
+          if (child.localName) {
+            arr.push("<" + child.localName);
 
-        for (; i < node.childNodes.length; ++i) {
-          child = node.childNodes[i]
-
-          if (!!child.localName) {
-            arr[arr.length] = '<' + child.localName
-            // Serialize attribute list
-            for (j = 0; j < child.attributes.length; j++) {
-              attr = child.attributes[j]
-              // The attribute value will be HTML escaped.
-              val = attr.getEncodedValue()
-              quote = val.indexOf('"') === -1 ? '"' : "'"
-              arr[arr.length] = ' ' + attr.name + '=' + quote + val + quote
+            // serialize attribute list
+            for (var j = 0; j < child.attributes.length; j++) {
+              var attr = child.attributes[j];
+              // the attribute value will be HTML escaped.
+              var val = attr.getEncodedValue();
+              var quote = (val.indexOf('"') === -1 ? '"' : "'");
+              arr.push(" " + attr.name + "=" + quote + val + quote);
             }
 
-            // if this is a self-closing element, end it here
-            if (child.localName in voidElems && !child.childNodes.length)
-              arr[arr.length] = '/>'
-            else {
+            if (child.localName in voidElems && !child.childNodes.length) {
+              // if this is a self-closing element, end it here
+              arr.push("/>");
+            } else {
               // otherwise, add its children
-              arr[arr.length] = '>'
-              getHTML(child)
-              arr[arr.length] = '</' + child.localName + '>'
+              arr.push(">");
+              getHTML(child);
+              arr.push("</" + child.localName + ">");
             }
-          } else arr[arr.length] = child.innerHTML // This is a text node, so asking for innerHTML won't recurse.
+          } else {
+            // This is a text node, so asking for innerHTML won't recurse.
+            arr.push(child.innerHTML);
+          }
         }
       }
 
       // Using Array.join() avoids the overhead from lazy string concatenation.
-      // See blog.cdleary.com/2012/01/string-representation-in-spidermonkey/#ropes
-      var arr = []
-      getHTML(this)
-      return arr.join('')
+      // See http://blog.cdleary.com/2012/01/string-representation-in-spidermonkey/#ropes
+      var arr = [];
+      getHTML(this);
+      return arr.join("");
     },
 
     set innerHTML(html) {
-      var parser = new JSDOMParser(),
-        node = parser.parse(html),
-        childNodes = this.childNodes,
-        i = childNodes.length
-
-      for (; --i >= 0; ) {
-        childNodes[i].parentNode = null
+      var parser = new JSDOMParser();
+      var node = parser.parse(html);
+      var i;
+      for (i = this.childNodes.length; --i >= 0;) {
+        this.childNodes[i].parentNode = null;
       }
-
-      this.childNodes = node.childNodes
-      this.children = node.children
-
-      for (i = this.childNodes.length; i > 0; ) {
-        this.childNodes[--i].parentNode = this
+      this.childNodes = node.childNodes;
+      this.children = node.children;
+      for (i = this.childNodes.length; --i >= 0;) {
+        this.childNodes[i].parentNode = this;
       }
     },
 
     set textContent(text) {
       // clear parentNodes for existing children
-      for (var i = this.childNodes.length; i > 0; ) {
-        this.childNodes[--i].parentNode = null
+      for (var i = this.childNodes.length; --i >= 0;) {
+        this.childNodes[i].parentNode = null;
       }
 
-      var node = new Text()
-
-      this.childNodes = [node]
-      this.children = []
-
-      node.textContent = text
-      node.parentNode = this
+      var node = new Text();
+      this.childNodes = [ node ];
+      this.children = [];
+      node.textContent = text;
+      node.parentNode = this;
     },
 
     get textContent() {
       function getText(node) {
-        var nodes = node.childNodes,
-          i = 0,
-          child
-
-        for (; i < nodes.length; ++i) {
-          child = nodes[i]
-          if (child.nodeType === 3) text[text.length] = child.textContent
-          else getText(child)
+        var nodes = node.childNodes;
+        for (var i = 0; i < nodes.length; i++) {
+          var child = nodes[i];
+          if (child.nodeType === 3) {
+            text.push(child.textContent);
+          } else {
+            getText(child);
+          }
         }
       }
 
       // Using Array.join() avoids the overhead from lazy string concatenation.
-      // See blog.cdleary.com/2012/01/string-representation-in-spidermonkey/#ropes
-      var text = []
-
-      getText(this)
-      return text.join('')
+      // See http://blog.cdleary.com/2012/01/string-representation-in-spidermonkey/#ropes
+      var text = [];
+      getText(this);
+      return text.join("");
     },
 
     getAttribute: function (name) {
-      var i = this.attributes.length,
-        attr
-
-      for (; i > 0; ) {
-        attr = this.attributes[--i]
-        if (attr.name === name) return attr.value
+      for (var i = this.attributes.length; --i >= 0;) {
+        var attr = this.attributes[i];
+        if (attr.name === name) {
+          return attr.value;
+        }
       }
-      return UNDEF
+      return undefined;
     },
 
     setAttribute: function (name, value) {
-      for (var i = this.attributes.length; --i >= 0; ) {
-        var attr = this.attributes[i]
+      for (var i = this.attributes.length; --i >= 0;) {
+        var attr = this.attributes[i];
         if (attr.name === name) {
-          attr.setValue(value)
-          return
+          attr.setValue(value);
+          return;
         }
       }
-      this.attributes.push(new Attribute(name, value))
+      this.attributes.push(new Attribute(name, value));
     },
 
     removeAttribute: function (name) {
-      for (var i = this.attributes.length; --i >= 0; ) {
-        var attr = this.attributes[i]
+      for (var i = this.attributes.length; --i >= 0;) {
+        var attr = this.attributes[i];
         if (attr.name === name) {
-          this.attributes.splice(i, 1)
-          break
+          this.attributes.splice(i, 1);
+          break;
         }
       }
     },
 
     hasAttribute: function (name) {
       return this.attributes.some(function (attr) {
-        return attr.name == name
-      })
+        return attr.name == name;
+      });
     },
-  }
+  };
 
   var Style = function (node) {
-    this.node = node
-  }
+    this.node = node;
+  };
 
   // getStyle() and setStyle() use the style attribute string directly. This
   // won't be very efficient if there are a lot of style manipulations, but
@@ -844,96 +809,90 @@ var UNDEF = void 0,
   // manipulations, so this should be okay.
   Style.prototype = {
     getStyle: function (styleName) {
-      var attr = this.node.getAttribute('style')
+      var attr = this.node.getAttribute("style");
+      if (!attr)
+        return undefined;
 
-      if (!!attr === false) return UNDEF
-
-      var styles = attr.split(';'),
-        style,
-        name
-
-      for (var i = 0; i < styles.length; ++i) {
-        style = styles[i].split(':')
-        name = style[0].trim()
-        if (name === styleName) return style[1].trim()
+      var styles = attr.split(";");
+      for (var i = 0; i < styles.length; i++) {
+        var style = styles[i].split(":");
+        var name = style[0].trim();
+        if (name === styleName)
+          return style[1].trim();
       }
 
-      return UNDEF
+      return undefined;
     },
 
     setStyle: function (styleName, styleValue) {
-      var value = this.node.getAttribute('style') || '',
-        index = 0,
-        next,
-        length,
-        style
-
+      var value = this.node.getAttribute("style") || "";
+      var index = 0;
       do {
-        next = value.indexOf(';', index) + 1
-        length = next - index - 1
-        style = length > 0 ? value.substr(index, length) : value.substr(index)
-
-        if (style.substr(0, style.indexOf(':')).trim() === styleName) {
-          value =
-            value.substr(0, index).trim() +
-            (next ? ' ' + value.substr(next).trim() : '')
-          break
+        var next = value.indexOf(";", index) + 1;
+        var length = next - index - 1;
+        var style = (length > 0 ? value.substr(index, length) : value.substr(index));
+        if (style.substr(0, style.indexOf(":")).trim() === styleName) {
+          value = value.substr(0, index).trim() + (next ? " " + value.substr(next).trim() : "");
+          break;
         }
-        index = next
-      } while (index)
+        index = next;
+      } while (index);
 
-      value += ' ' + styleName + ': ' + styleValue + ';'
-      this.node.setAttribute('style', value.trim())
-    },
-  }
+      value += " " + styleName + ": " + styleValue + ";";
+      this.node.setAttribute("style", value.trim());
+    }
+  };
 
   // For each item in styleMap, define a getter and setter on the style
   // property.
   for (var jsName in styleMap) {
-    ;(function (cssName) {
+    (function (cssName) {
       Style.prototype.__defineGetter__(jsName, function () {
-        return this.getStyle(cssName)
-      })
+        return this.getStyle(cssName);
+      });
       Style.prototype.__defineSetter__(jsName, function (value) {
-        this.setStyle(cssName, value)
-      })
-    })(styleMap[jsName])
+        this.setStyle(cssName, value);
+      });
+    })(styleMap[jsName]);
   }
 
   var JSDOMParser = function () {
-    this.currentChar = 0
+    this.currentChar = 0;
+
     // In makeElementNode() we build up many strings one char at a time. Using
     // += for this results in lots of short-lived intermediate strings. It's
     // better to build an array of single-char strings and then join() them
     // together at the end. And reusing a single array (i.e. |this.strBuf|)
     // over and over for this purpose uses less memory than using a new array
     // for each string.
-    this.strBuf = []
+    this.strBuf = [];
+
     // Similarly, we reuse this array to return the two arguments from
     // makeElementNode(), which saves us from having to allocate a new array
     // every time.
-    this.retPair = []
-    this.errorState = ''
-  }
+    this.retPair = [];
+
+    this.errorState = "";
+  };
 
   JSDOMParser.prototype = {
-    error: function (m) {
-      dump('JSDOMParser error: ' + m + '\n')
-      this.errorState += m + '\n'
+    error: function(m) {
+      dump("JSDOMParser error: " + m + "\n");
+      this.errorState += m + "\n";
     },
 
     /**
      * Look at the next character without advancing the index.
      */
     peekNext: function () {
-      return this.html[this.currentChar]
+      return this.html[this.currentChar];
     },
 
     /**
      * Get the next character and advance the index.
      */
     nextChar: function () {
-      return this.html[this.currentChar++]
+      return this.html[this.currentChar++];
     },
 
     /**
@@ -941,16 +900,17 @@ var UNDEF = void 0,
      * character and returns the text string in between.
      */
     readString: function (quote) {
-      var str,
-        n = this.html.indexOf(quote, this.currentChar)
+      var str;
+      var n = this.html.indexOf(quote, this.currentChar);
       if (n === -1) {
-        this.currentChar = this.html.length
-        str = null
+        this.currentChar = this.html.length;
+        str = null;
       } else {
-        str = this.html.substring(this.currentChar, n)
-        this.currentChar = n + 1
+        str = this.html.substring(this.currentChar, n);
+        this.currentChar = n + 1;
       }
-      return str
+
+      return str;
     },
 
     /**
@@ -958,88 +918,91 @@ var UNDEF = void 0,
      * pair and adds the result to the attributes list.
      */
     readAttribute: function (node) {
-      var name = '',
-        n = this.html.indexOf('=', this.currentChar)
+      var name = "";
 
-      if (n === -1) this.currentChar = this.html.length
-      else {
+      var n = this.html.indexOf("=", this.currentChar);
+      if (n === -1) {
+        this.currentChar = this.html.length;
+      } else {
         // Read until a '=' character is hit; this will be the attribute key
-        name = this.html.substring(this.currentChar, n)
-        this.currentChar = n + 1
+        name = this.html.substring(this.currentChar, n);
+        this.currentChar = n + 1;
       }
 
-      if (!name) return
+      if (!name)
+        return;
 
       // After a '=', we should see a '"' for the attribute value
-      var c = this.nextChar()
-
+      var c = this.nextChar();
       if (c !== '"' && c !== "'") {
-        this.error('Error reading attribute ' + name + ", expecting '\"'")
-        return
+        this.error("Error reading attribute " + name + ", expecting '\"'");
+        return;
       }
 
       // Read the attribute value (and consume the matching quote)
-      var value = this.readString(c)
+      var value = this.readString(c);
 
-      node.attributes[node.attributes.length] = new Attribute(
-        name,
-        decodeHTML(value)
-      )
-      return
+      node.attributes.push(new Attribute(name, decodeHTML(value)));
+
+      return;
     },
 
     /**
      * Parses and returns an Element node. This is called after a '<' has been
      * read.
+     *
      * @returns an array; the first index of the array is the parsed node;
      *          the second index is a boolean indicating whether this is a void
      *          Element
      */
     makeElementNode: function (retPair) {
-      var c = this.nextChar()
+      var c = this.nextChar();
 
       // Read the Element tag name
-      var strBuf = this.strBuf
-      strBuf.length = 0
-      while (whitespace.indexOf(c) == -1 && c !== '>' && c !== '/') {
-        if (c === UNDEF) return false
-        strBuf.push(c)
-        c = this.nextChar()
+      var strBuf = this.strBuf;
+      strBuf.length = 0;
+      while (whitespace.indexOf(c) == -1 && c !== ">" && c !== "/") {
+        if (c === undefined)
+          return false;
+        strBuf.push(c);
+        c = this.nextChar();
       }
+      var tag = strBuf.join("");
 
-      var tag = strBuf.join('')
-      if (!!tag === false) return false
-      var node = new Element(tag)
+      if (!tag)
+        return false;
+
+      var node = new Element(tag);
 
       // Read Element attributes
-      while (c !== '/' && c !== '>') {
-        if (c === undefined) return false
+      while (c !== "/" && c !== ">") {
+        if (c === undefined)
+          return false;
         while (whitespace.indexOf(this.html[this.currentChar++]) != -1) {
           // Advance cursor to first non-whitespace char.
         }
-        this.currentChar--
-        c = this.nextChar()
-        if (c !== '/' && c !== '>') {
-          --this.currentChar
-          this.readAttribute(node)
+        this.currentChar--;
+        c = this.nextChar();
+        if (c !== "/" && c !== ">") {
+          --this.currentChar;
+          this.readAttribute(node);
         }
       }
 
       // If this is a self-closing tag, read '/>'
-      var closed = false
-
-      if (c === '/') {
-        closed = true
-        c = this.nextChar()
-        if (c !== '>') {
-          this.error("expected '>' to close " + tag)
-          return false
+      var closed = false;
+      if (c === "/") {
+        closed = true;
+        c = this.nextChar();
+        if (c !== ">") {
+          this.error("expected '>' to close " + tag);
+          return false;
         }
       }
 
-      retPair[0] = node
-      retPair[1] = closed
-      return true
+      retPair[0] = node;
+      retPair[1] = closed;
+      return true;
     },
 
     /**
@@ -1049,15 +1012,12 @@ var UNDEF = void 0,
      * @returns whether input matched string
      */
     match: function (str) {
-      var n = str.length
-      if (
-        this.html.substr(this.currentChar, n).toLowerCase() ===
-        str.toLowerCase()
-      ) {
-        this.currentChar += n
-        return true
+      var strlen = str.length;
+      if (this.html.substr(this.currentChar, strlen).toLowerCase() === str.toLowerCase()) {
+        this.currentChar += strlen;
+        return true;
       }
-      return false
+      return false;
     },
 
     /**
@@ -1065,34 +1025,41 @@ var UNDEF = void 0,
      * and including the matched string.
      */
     discardTo: function (str) {
-      var i = this.html.indexOf(str, this.currentChar) + str.length
-      if (i === -1) this.currentChar = this.html.length
-      this.currentChar = i
+      var index = this.html.indexOf(str, this.currentChar) + str.length;
+      if (index === -1)
+        this.currentChar = this.html.length;
+      this.currentChar = index;
     },
 
     /**
      * Reads child nodes for the given node.
      */
     readChildren: function (node) {
-      var child
+      var child;
       while ((child = this.readNode())) {
         // Don't keep Comment nodes
-        child.nodeType !== 8 && node.appendChild(child)
+        if (child.nodeType !== 8) {
+          node.appendChild(child);
+        }
       }
     },
 
-    discardNextComment: function () {
-      if (this.match('--')) this.discardTo('-->')
-      else {
-        var c = this.nextChar()
-        while (c !== '>') {
-          if (c === undefined) return null
-          if (c === '"' || c === "'") this.readString(c)
-          c = this.nextChar()
+    discardNextComment: function() {
+      if (this.match("--")) {
+        this.discardTo("-->");
+      } else {
+        var c = this.nextChar();
+        while (c !== ">") {
+          if (c === undefined)
+            return null;
+          if (c === '"' || c === "'")
+            this.readString(c);
+          c = this.nextChar();
         }
       }
-      return new Comment()
+      return new Comment();
     },
+
 
     /**
      * Reads the next child node from the input. If we're reading a closing
@@ -1101,129 +1068,124 @@ var UNDEF = void 0,
      * @returns the node
      */
     readNode: function () {
-      var c = this.nextChar()
-      if (c === undefined) return null
+      var c = this.nextChar();
+
+      if (c === undefined)
+        return null;
 
       // Read any text as Text node
-      var textNode
-
-      if (c !== '<') {
-        --this.currentChar
-        textNode = new Text()
-        var n = this.html.indexOf('<', this.currentChar)
+      var textNode;
+      if (c !== "<") {
+        --this.currentChar;
+        textNode = new Text();
+        var n = this.html.indexOf("<", this.currentChar);
         if (n === -1) {
-          textNode.innerHTML = this.html.substring(
-            this.currentChar,
-            this.html.length
-          )
-          this.currentChar = this.html.length
+          textNode.innerHTML = this.html.substring(this.currentChar, this.html.length);
+          this.currentChar = this.html.length;
         } else {
-          textNode.innerHTML = this.html.substring(this.currentChar, n)
-          this.currentChar = n
+          textNode.innerHTML = this.html.substring(this.currentChar, n);
+          this.currentChar = n;
         }
-        return textNode
+        return textNode;
       }
 
-      if (this.match('![CDATA[')) {
-        var endChar = this.html.indexOf(']]>', this.currentChar)
+      if (this.match("![CDATA[")) {
+        var endChar = this.html.indexOf("]]>", this.currentChar);
         if (endChar === -1) {
-          this.error('unclosed CDATA section')
-          return null
+          this.error("unclosed CDATA section");
+          return null;
         }
-        textNode = new Text()
-        textNode.textContent = this.html.substring(this.currentChar, endChar)
-        this.currentChar = endChar + ']]>'.length
-        return textNode
+        textNode = new Text();
+        textNode.textContent = this.html.substring(this.currentChar, endChar);
+        this.currentChar = endChar + ("]]>").length;
+        return textNode;
       }
 
-      c = this.peekNext()
+      c = this.peekNext();
 
       // Read Comment node. Normally, Comment nodes know their inner
       // textContent, but we don't really care about Comment nodes (we throw
       // them away in readChildren()). So just returning an empty Comment node
       // here is sufficient.
-      if (c === '!' || c === '?') {
+      if (c === "!" || c === "?") {
         // We're still before the ! or ? that is starting this comment:
-        this.currentChar++
-        return this.discardNextComment()
+        this.currentChar++;
+        return this.discardNextComment();
       }
 
       // If we're reading a closing tag, return null. This means we've reached
       // the end of this set of child nodes.
-      if (c === '/') {
-        --this.currentChar
-        return null
+      if (c === "/") {
+        --this.currentChar;
+        return null;
       }
 
       // Otherwise, we're looking at an Element node
-      var result = this.makeElementNode(this.retPair)
-      if (!result) return null
+      var result = this.makeElementNode(this.retPair);
+      if (!result)
+        return null;
 
-      var node = this.retPair[0],
-        closed = this.retPair[1],
-        localName = node.localName
+      var node = this.retPair[0];
+      var closed = this.retPair[1];
+      var localName = node.localName;
 
       // If this isn't a void Element, read its child nodes
       if (!closed) {
-        this.readChildren(node)
-        var closingTag = '</' + node._matchingTag + '>'
-
+        this.readChildren(node);
+        var closingTag = "</" + node._matchingTag + ">";
         if (!this.match(closingTag)) {
-          this.error(
-            "expected '" +
-              closingTag +
-              "' and got " +
-              this.html.substr(this.currentChar, closingTag.length)
-          )
-          return null
+          this.error("expected '" + closingTag + "' and got " + this.html.substr(this.currentChar, closingTag.length));
+          return null;
         }
       }
 
       // Only use the first title, because SVG might have other
       // title elements which we don't care about (medium.com
       // does this, at least).
-      if (localName === 'title' && !this.doc.title) {
-        this.doc.title = node.textContent.trim()
-      } else if (localName === 'head') {
-        this.doc.head = node
-      } else if (localName === 'body') {
-        this.doc.body = node
-      } else if (localName === 'html') {
-        this.doc.documentElement = node
+      if (localName === "title" && !this.doc.title) {
+        this.doc.title = node.textContent.trim();
+      } else if (localName === "head") {
+        this.doc.head = node;
+      } else if (localName === "body") {
+        this.doc.body = node;
+      } else if (localName === "html") {
+        this.doc.documentElement = node;
       }
-      return node
+
+      return node;
     },
 
     /**
      * Parses an HTML string and returns a JS implementation of the Document.
      */
     parse: function (html, url) {
-      this.html = html
-      var doc = (this.doc = new Document(url))
-      this.readChildren(doc)
+      this.html = html;
+      var doc = this.doc = new Document(url);
+      this.readChildren(doc);
 
       // If this is an HTML document, remove root-level children except for the
       // <html> node
       if (doc.documentElement) {
-        var child,
-          i = doc.childNodes.length
-
-        for (; i > 0; ) {
-          child = doc.childNodes[--i]
-          child !== doc.documentElement && doc.removeChild(child)
+        for (var i = doc.childNodes.length; --i >= 0;) {
+          var child = doc.childNodes[i];
+          if (child !== doc.documentElement) {
+            doc.removeChild(child);
+          }
         }
       }
-      return doc
-    },
-  }
+
+      return doc;
+    }
+  };
 
   // Attach the standard DOM types to the global scope
-  global.Node = Node
-  global.Comment = Comment
-  global.Document = Document
-  global.Element = Element
-  global.Text = Text
+  global.Node = Node;
+  global.Comment = Comment;
+  global.Document = Document;
+  global.Element = Element;
+  global.Text = Text;
 
   // Attach JSDOMParser to the global scope
-  global.JSDOMParser = JSDOMParser
-})(this)
+  global.JSDOMParser = JSDOMParser;
+
+})(this);
